@@ -13,10 +13,21 @@ import {
   BOARD_HEIGHT,
   ActionLogEntry,
 } from '../lib/tetris'
+import { useTetrisContract } from '../lib/useTetrisContract'
+import { ENTRY_FEE_ETH } from '../lib/contract'
 import WalletConnection from './WalletConnection'
 
 export default function Tetris() {
   const { isConnected } = useAccount()
+  const {
+    currentRound,
+    hasPlayerPaid,
+    isWritePending,
+    isConfirming,
+    isConfirmed,
+    enterGame,
+    refetchHasPlayerPaid,
+  } = useTetrisContract()
   const [gameState, setGameState] = useStateTogether<GameState>(
     'tetris-game',
     createInitialGameState(),
@@ -92,9 +103,16 @@ export default function Tetris() {
     }
   }, [])
 
+  // Refetch payment status when transaction is confirmed
+  useEffect(() => {
+    if (isConfirmed) {
+      refetchHasPlayerPaid()
+    }
+  }, [isConfirmed, refetchHasPlayerPaid])
+
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
-      if (gameState.gameOver || !isConnected) return
+      if (gameState.gameOver || !isConnected || !hasPlayerPaid) return
 
       switch (event.key) {
         case 'ArrowLeft':
@@ -129,7 +147,7 @@ export default function Tetris() {
           break
       }
     },
-    [gameState, addAction, isConnected],
+    [gameState, addAction, isConnected, hasPlayerPaid],
   )
 
   useEffect(() => {
@@ -144,7 +162,8 @@ export default function Tetris() {
       !hasPlayers ||
       gameState.gameOver ||
       gameState.paused ||
-      !isConnected
+      !isConnected ||
+      !hasPlayerPaid
     )
       return
 
@@ -168,10 +187,11 @@ export default function Tetris() {
     lastUpdate,
     gameState,
     isConnected,
+    hasPlayerPaid,
   ])
 
   const resetGame = () => {
-    if (!isConnected) return
+    if (!isConnected || !hasPlayerPaid) return
     setGameState(createInitialGameState())
     setLastUpdate(Date.now())
   }
@@ -295,6 +315,30 @@ export default function Tetris() {
         </div>
       )}
 
+      {isConnected && !hasPlayerPaid && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-white p-8 border-4 border-black text-center">
+            <h2 className="text-2xl font-bold mb-4 text-black">ROUND {currentRound}</h2>
+            <p className="text-lg mb-6 text-black">
+              Pay <span className="font-bold">{ENTRY_FEE_ETH} ETH</span> to enter the game
+            </p>
+            <button
+              onClick={enterGame}
+              disabled={isWritePending || isConfirming}
+              className={`px-6 py-3 border-2 transition-colors font-bold text-lg ${
+                isWritePending || isConfirming
+                  ? 'bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed'
+                  : 'bg-black text-white border-black hover:bg-white hover:text-black cursor-pointer'
+              }`}
+            >
+              {isWritePending && 'CONFIRM IN WALLET...'}
+              {isConfirming && 'PROCESSING PAYMENT...'}
+              {!isWritePending && !isConfirming && `PAY ${ENTRY_FEE_ETH} ETH`}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-8 items-start">
         <div className="flex flex-col items-center">
           <h1 className="text-3xl font-bold mb-4 text-black">TETRIS</h1>
@@ -341,9 +385,13 @@ export default function Tetris() {
           <WalletConnection />
 
           <div className="border-2 border-black bg-white p-4">
-            <h2 className="text-lg font-bold mb-2 text-black">PLAYERS</h2>
+            <h2 className="text-lg font-bold mb-2 text-black">GAME INFO</h2>
             <div className="space-y-1 text-sm text-black font-medium">
+              <div>Round: {currentRound}</div>
               <div>Connected: {connectedUsers.length}</div>
+              <div className={`text-xs font-medium ${hasPlayerPaid ? 'text-green-600' : 'text-yellow-600'}`}>
+                Status: {hasPlayerPaid ? 'PAID ✓' : 'PAYMENT REQUIRED'}
+              </div>
               {hasPlayers ? (
                 <>
                   <div className="text-xs text-gray-700 font-medium">
