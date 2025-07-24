@@ -11,6 +11,7 @@ import {
   BOARD_HEIGHT,
   ActionLogEntry,
 } from '../lib/tetris'
+import WalletConnection from './WalletConnection'
 
 export default function Tetris() {
   const [gameState, setGameState] = useStateTogether<GameState>(
@@ -306,6 +307,8 @@ export default function Tetris() {
         </div>
 
         <div className="flex flex-col gap-6">
+          <WalletConnection />
+          
           <div className="border-2 border-black bg-white p-4">
             <h2 className="text-lg font-bold mb-2 text-black">PLAYERS</h2>
             <div className="space-y-1 text-sm text-black font-medium">
