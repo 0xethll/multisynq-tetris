@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useStateTogether, useConnectedUsers } from 'react-together'
+import { useAccount } from 'wagmi'
+import { ConnectKitButton } from 'connectkit'
 import {
   GameState,
   createInitialGameState,
@@ -14,6 +16,7 @@ import {
 import WalletConnection from './WalletConnection'
 
 export default function Tetris() {
+  const { isConnected } = useAccount()
   const [gameState, setGameState] = useStateTogether<GameState>(
     'tetris-game',
     createInitialGameState(),
@@ -91,7 +94,7 @@ export default function Tetris() {
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
-      if (gameState.gameOver) return
+      if (gameState.gameOver || !isConnected) return
 
       switch (event.key) {
         case 'ArrowLeft':
@@ -126,7 +129,7 @@ export default function Tetris() {
           break
       }
     },
-    [gameState, addAction],
+    [gameState, addAction, isConnected],
   )
 
   useEffect(() => {
@@ -136,7 +139,13 @@ export default function Tetris() {
 
   // Game loop - only leader controls automatic piece dropping
   useEffect(() => {
-    if (!isLeader || !hasPlayers || gameState.gameOver || gameState.paused)
+    if (
+      !isLeader ||
+      !hasPlayers ||
+      gameState.gameOver ||
+      gameState.paused ||
+      !isConnected
+    )
       return
 
     const dropSpeed = Math.max(50, 800 - gameState.level * 50)
@@ -158,9 +167,11 @@ export default function Tetris() {
     gameState.paused,
     lastUpdate,
     gameState,
+    isConnected,
   ])
 
   const resetGame = () => {
+    if (!isConnected) return
     setGameState(createInitialGameState())
     setLastUpdate(Date.now())
   }
@@ -268,7 +279,22 @@ export default function Tetris() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative">
+      {!isConnected && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <ConnectKitButton.Custom>
+            {({ show }) => (
+              <button
+                onClick={show}
+                className="px-6 py-3 bg-black text-white border-2 border-black hover:bg-white hover:text-black transition-colors font-bold text-lg"
+              >
+                CONNECT WALLET
+              </button>
+            )}
+          </ConnectKitButton.Custom>
+        </div>
+      )}
+
       <div className="flex gap-8 items-start">
         <div className="flex flex-col items-center">
           <h1 className="text-3xl font-bold mb-4 text-black">TETRIS</h1>
@@ -277,7 +303,7 @@ export default function Tetris() {
             {renderBoard()}
             {renderCornerOverlay()}
             {!hasPlayers && (
-              <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/75 flex items-center justify-center">
                 <div className="text-white text-center">
                   <p className="text-xl font-bold mb-2">NO PLAYERS</p>
                   <p className="text-sm">Game paused until someone joins</p>
@@ -291,7 +317,12 @@ export default function Tetris() {
               <p className="text-2xl font-bold text-red-600 mb-2">GAME OVER</p>
               <button
                 onClick={resetGame}
-                className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-white hover:text-black transition-colors"
+                disabled={!isConnected}
+                className={`px-4 py-2 border-2 transition-colors ${
+                  isConnected
+                    ? 'bg-black text-white border-black hover:bg-white hover:text-black cursor-pointer'
+                    : 'bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed'
+                }`}
               >
                 NEW GAME
               </button>
@@ -308,7 +339,7 @@ export default function Tetris() {
 
         <div className="flex flex-col gap-6">
           <WalletConnection />
-          
+
           <div className="border-2 border-black bg-white p-4">
             <h2 className="text-lg font-bold mb-2 text-black">PLAYERS</h2>
             <div className="space-y-1 text-sm text-black font-medium">
