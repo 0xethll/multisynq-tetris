@@ -19,19 +19,21 @@ import WalletConnection from './WalletConnection'
 
 export default function Tetris() {
   const { isConnected } = useAccount()
+
+  const [gameState, setGameState] = useStateTogether<GameState>(
+    'tetris-game',
+    createInitialGameState(1),
+  )
+
   const {
-    currentRound,
     hasPlayerPaid,
     isWritePending,
     isConfirming,
     isConfirmed,
     enterGame,
     refetchHasPlayerPaid,
-  } = useTetrisContract()
-  const [gameState, setGameState] = useStateTogether<GameState>(
-    'tetris-game',
-    createInitialGameState(),
-  )
+  } = useTetrisContract(gameState.round)
+
   const [actionLog, setActionLog] = useStateTogether<ActionLogEntry[]>(
     'action-log',
     [],
@@ -192,7 +194,7 @@ export default function Tetris() {
 
   const resetGame = () => {
     if (!isConnected || !hasPlayerPaid) return
-    setGameState(createInitialGameState())
+    setGameState(createInitialGameState(gameState.round + 1))
     setLastUpdate(Date.now())
   }
 
@@ -318,9 +320,12 @@ export default function Tetris() {
       {isConnected && !hasPlayerPaid && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
           <div className="bg-white p-8 border-4 border-black text-center">
-            <h2 className="text-2xl font-bold mb-4 text-black">ROUND {currentRound}</h2>
+            <h2 className="text-2xl font-bold mb-4 text-black">
+              ROUND {gameState.round}
+            </h2>
             <p className="text-lg mb-6 text-black">
-              Pay <span className="font-bold">{ENTRY_FEE_ETH} ETH</span> to enter the game
+              Pay <span className="font-bold">{ENTRY_FEE_ETH} MON</span> to
+              enter the game
             </p>
             <button
               onClick={enterGame}
@@ -387,9 +392,13 @@ export default function Tetris() {
           <div className="border-2 border-black bg-white p-4">
             <h2 className="text-lg font-bold mb-2 text-black">GAME INFO</h2>
             <div className="space-y-1 text-sm text-black font-medium">
-              <div>Round: {currentRound}</div>
+              <div>Round: {gameState.round}</div>
               <div>Connected: {connectedUsers.length}</div>
-              <div className={`text-xs font-medium ${hasPlayerPaid ? 'text-green-600' : 'text-yellow-600'}`}>
+              <div
+                className={`text-xs font-medium ${
+                  hasPlayerPaid ? 'text-green-600' : 'text-yellow-600'
+                }`}
+              >
                 Status: {hasPlayerPaid ? 'PAID ✓' : 'PAYMENT REQUIRED'}
               </div>
               {hasPlayers ? (

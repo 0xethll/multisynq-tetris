@@ -20,6 +20,7 @@ export interface Tetromino {
 }
 
 export interface GameState {
+  round: number
   board: number[][]
   currentPiece: Tetromino | null
   nextPiece: Tetromino | null
@@ -156,8 +157,9 @@ export function calculateScore(linesCleared: number, level: number): number {
   return lineScores[linesCleared] * (level + 1)
 }
 
-export function createInitialGameState(): GameState {
+export function createInitialGameState(round: number): GameState {
   return {
+    round,
     board: createEmptyBoard(),
     currentPiece: getRandomTetromino(),
     nextPiece: getRandomTetromino(),

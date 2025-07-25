@@ -8,28 +8,14 @@ export const TETRIS_GAME_ABI = [
   },
   {
     type: 'function',
-    name: 'currentRound',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'enterGame',
-    inputs: [],
+    inputs: [{ name: 'round', type: 'uint256', internalType: 'uint256' }],
     outputs: [],
     stateMutability: 'payable',
   },
   {
     type: 'function',
     name: 'getContractBalance',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'getCurrentRound',
     inputs: [],
     outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     stateMutability: 'view',
@@ -91,20 +77,6 @@ export const TETRIS_GAME_ABI = [
     ],
     outputs: [{ name: '', type: 'address', internalType: 'address' }],
     stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'roundStartTime',
-    inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'startNewRound',
-    inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -177,19 +149,6 @@ export const TETRIS_GAME_ABI = [
     ],
     anonymous: false,
   },
-  {
-    type: 'event',
-    name: 'RoundStarted',
-    inputs: [
-      {
-        name: 'round',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
-    ],
-    anonymous: false,
-  },
   { type: 'error', name: 'InvalidInitialization', inputs: [] },
   { type: 'error', name: 'NotInitializing', inputs: [] },
   {
@@ -205,6 +164,7 @@ export const TETRIS_GAME_ABI = [
   { type: 'error', name: 'ReentrancyGuardReentrantCall', inputs: [] },
 ] as const
 
-export const TETRIS_GAME_CONTRACT_ADDRESS = '0x...' as const
+export const TETRIS_GAME_CONTRACT_ADDRESS =
+  '0x040F7B65Ab01323a5228127d781387DF1c99A1F8' as const
 
 export const ENTRY_FEE_ETH = '0.01'
