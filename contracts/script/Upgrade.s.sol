@@ -7,17 +7,16 @@ import {TetrisGame} from "../src/TetrisGame.sol";
 
 contract UpgradeScript is Script {
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address proxyAddress = vm.envAddress("PROXY_ADDRESS");
         
         console.log("Upgrading TetrisGame at proxy:", proxyAddress);
         
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast();
         
         // Upgrade the proxy to a new implementation
         Upgrades.upgradeProxy(
             proxyAddress,
-            "TetrisGame.sol",
+            "TetrisGame.sol:TetrisGame",
             ""
         );
         
@@ -28,7 +27,6 @@ contract UpgradeScript is Script {
         
         // Verify the upgrade
         TetrisGame tetrisGame = TetrisGame(proxyAddress);
-        console.log("Current round after upgrade:", tetrisGame.getCurrentRound());
         console.log("Owner after upgrade:", tetrisGame.owner());
     }
 }

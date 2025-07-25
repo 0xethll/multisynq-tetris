@@ -31,7 +31,6 @@ contract DeployScript is Script {
         
         // Verify the deployment
         TetrisGame tetrisGame = TetrisGame(proxy);
-        console.log("Current round:", tetrisGame.getCurrentRound());
         console.log("Entry fee:", tetrisGame.ENTRY_FEE());
         console.log("Owner:", tetrisGame.owner());
     }

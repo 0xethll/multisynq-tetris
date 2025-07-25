@@ -7,53 +7,39 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 contract TetrisGame is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 public constant ENTRY_FEE = 0.01 ether;
-    uint256 public currentRound;
     
     mapping(uint256 => mapping(address => bool)) public hasPlayerPaid;
     mapping(uint256 => address[]) public roundPlayers;
-    mapping(uint256 => uint256) public roundStartTime;
     
     event PlayerEntered(address indexed player, uint256 indexed round, uint256 amount);
-    event RoundStarted(uint256 indexed round);
     
     function initialize() public initializer {
         __Ownable_init(msg.sender);
         __ReentrancyGuard_init();
-        currentRound = 1;
     }
     
     modifier onlyValidPayment() {
-        require(msg.value == ENTRY_FEE, "Must pay exactly 0.01 ETH");
+        require(msg.value == ENTRY_FEE, "Must pay exactly 0.01 Mon");
         _;
     }
     
-    function enterGame() external payable onlyValidPayment nonReentrant {
-        require(!hasPlayerPaid[currentRound][msg.sender], "Already paid for this round");
+    function enterGame(uint256 round) external payable onlyValidPayment nonReentrant {
+        require(!hasPlayerPaid[round][msg.sender], "Already paid for this round");
         
-        hasPlayerPaid[currentRound][msg.sender] = true;
-        roundPlayers[currentRound].push(msg.sender);
+        hasPlayerPaid[round][msg.sender] = true;
+        roundPlayers[round].push(msg.sender);
         
-        emit PlayerEntered(msg.sender, currentRound, msg.value);
+        emit PlayerEntered(msg.sender, round, msg.value);
     }
     
     function hasPlayerPaidForRound(address player, uint256 round) external view returns (bool) {
         return hasPlayerPaid[round][player];
     }
-    
-    function getCurrentRound() external view returns (uint256) {
-        return currentRound;
-    }
-    
+
     function getRoundPlayers(uint256 round) external view returns (address[] memory) {
         return roundPlayers[round];
     }
-    
-    function startNewRound() external onlyOwner {
-        currentRound++;
-        roundStartTime[currentRound] = block.timestamp;
-        emit RoundStarted(currentRound);
-    }
-    
+        
     function getContractBalance() external view returns (uint256) {
         return address(this).balance;
     }
