@@ -15,7 +15,7 @@ export default function ReactTogetherProvider({
         name: 'tetris-multiplayer',
         password: 'tetris123',
         apiKey: process.env.NEXT_PUBLIC_MULTISYNQ_API_KEY || 'demo-api-key',
-        appId: 'com.tetris.myapp',
+        appId: 'com.tetris.myapp1',
       }}
     >
       {children}
