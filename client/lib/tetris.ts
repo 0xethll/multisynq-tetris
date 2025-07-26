@@ -6,6 +6,14 @@ export interface ActionLogEntry {
   timestamp: number
 }
 
+export interface RoundScore {
+  roundId: number
+  score: number
+  lines: number
+  level: number
+  timestamp: number
+}
+
 export type TetrominoType = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L'
 
 export interface Position {
@@ -240,4 +248,28 @@ export function rotatePieceInGame(gameState: GameState): GameState {
   }
 
   return gameState
+}
+
+export function shouldRecordScore(
+  gameState: GameState,
+  existingScores: RoundScore[],
+): boolean {
+  return !existingScores.some((score) => score.roundId === gameState.round)
+}
+
+export function createRoundScore(gameState: GameState): RoundScore {
+  return {
+    roundId: gameState.round,
+    score: gameState.score,
+    lines: gameState.lines,
+    level: gameState.level,
+    timestamp: Date.now(),
+  }
+}
+
+export function addScoreToList(
+  scores: RoundScore[],
+  newScore: RoundScore,
+): RoundScore[] {
+  return [...scores, newScore]
 }

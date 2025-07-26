@@ -12,6 +12,10 @@ import {
   BOARD_WIDTH,
   BOARD_HEIGHT,
   ActionLogEntry,
+  RoundScore,
+  shouldRecordScore,
+  createRoundScore,
+  addScoreToList,
 } from '../lib/tetris'
 import { useTetrisContract } from '../lib/useTetrisContract'
 import { ENTRY_FEE_ETH } from '../lib/contract'
@@ -36,6 +40,11 @@ export default function Tetris() {
 
   const [actionLog, setActionLog] = useStateTogether<ActionLogEntry[]>(
     'action-log',
+    [],
+  )
+
+  const [roundScores, setRoundScores] = useStateTogether<RoundScore[]>(
+    'round-scores',
     [],
   )
   const [lastUpdate, setLastUpdate] = useState(Date.now())
@@ -158,42 +167,52 @@ export default function Tetris() {
   }, [handleKeyPress])
 
   // Game loop - only leader controls automatic piece dropping
-  useEffect(() => {
-    if (
-      !isLeader ||
-      !hasPlayers ||
-      gameState.gameOver ||
-      gameState.paused ||
-      !isConnected ||
-      !hasPlayerPaid
-    )
-      return
+  // useEffect(() => {
+  //   if (
+  //     !isLeader ||
+  //     !hasPlayers ||
+  //     gameState.gameOver ||
+  //     gameState.paused ||
+  //     !isConnected ||
+  //     !hasPlayerPaid
+  //   )
+  //     return
 
-    const dropSpeed = Math.max(50, 800 - gameState.level * 50)
+  //   const dropSpeed = Math.max(50, 800 - gameState.level * 50)
 
-    const gameLoop = setInterval(() => {
-      const now = Date.now()
-      if (now - lastUpdate > dropSpeed) {
-        setGameState(movePiece(gameState, 'down'))
-        setLastUpdate(now)
-      }
-    }, 16)
+  //   const gameLoop = setInterval(() => {
+  //     const now = Date.now()
+  //     if (now - lastUpdate > dropSpeed) {
+  //       setGameState(movePiece(gameState, 'down'))
+  //       setLastUpdate(now)
+  //     }
+  //   }, 16)
 
-    return () => clearInterval(gameLoop)
-  }, [
-    isLeader,
-    hasPlayers,
-    gameState.level,
-    gameState.gameOver,
-    gameState.paused,
-    lastUpdate,
-    gameState,
-    isConnected,
-    hasPlayerPaid,
-  ])
+  //   return () => clearInterval(gameLoop)
+  // }, [
+  //   isLeader,
+  //   hasPlayers,
+  //   gameState.level,
+  //   gameState.gameOver,
+  //   gameState.paused,
+  //   lastUpdate,
+  //   gameState,
+  //   isConnected,
+  //   hasPlayerPaid,
+  // ])
+
+  const recordScore = useCallback(() => {
+    if (!shouldRecordScore(gameState, roundScores)) return
+
+    const newScore = createRoundScore(gameState)
+    setRoundScores(addScoreToList(roundScores, newScore))
+  }, [gameState, roundScores, setRoundScores])
 
   const resetGame = () => {
     if (!isConnected || !hasPlayerPaid) return
+    if (gameState.gameOver) {
+      recordScore()
+    }
     setGameState(createInitialGameState(gameState.round + 1))
     setLastUpdate(Date.now())
   }
@@ -442,6 +461,36 @@ export default function Tetris() {
               <div>↑ / SPACE Rotate</div>
               <div>P Pause</div>
             </div>
+          </div>
+
+          <div className="border-2 border-black bg-white p-4 max-h-80 overflow-y-auto">
+            <h2 className="text-lg font-bold mb-2 text-black">ROUND SCORES</h2>
+            {roundScores.length === 0 ? (
+              <div className="text-xs text-gray-500 italic">
+                No scores recorded yet
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {roundScores
+                  .sort((a, b) => a.roundId - b.roundId)
+                  .map((score) => (
+                    <div
+                      key={score.roundId}
+                      className="text-xs bg-gray-50 p-2 border border-gray-200"
+                    >
+                      <div className="font-bold text-black">
+                        Round {score.roundId}
+                      </div>
+                      <div className="text-gray-700">
+                        <div>Score: {score.score.toLocaleString()}</div>
+                        <div>
+                          Lines: {score.lines} | Level: {score.level}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
