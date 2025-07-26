@@ -320,7 +320,7 @@ export default function Tetris() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative">
+    <div className="min-h-screen bg-gray-100 p-4 relative">
       {!isConnected && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
           <ConnectKitButton.Custom>
@@ -363,9 +363,34 @@ export default function Tetris() {
         </div>
       )}
 
-      <div className="flex gap-8 items-start">
+      <div className="flex gap-6 justify-center max-w-7xl mx-auto">
         <div className="flex flex-col items-center">
           <h1 className="text-3xl font-bold mb-4 text-black">TETRIS</h1>
+
+          <div className="text-center mb-4 bg-white border-2 border-black p-3 max-w-md">
+            <p className="text-sm font-bold text-black mb-2">
+              🎮 MULTIPLAYER CHAOS EDITION 🎮
+            </p>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Where blocks fall, wallets cry, and only the brave survive! Every
+              move is a race 🏃‍♂️ but you&apos;re also stuck together like awkward
+              dance partners. 💃🕺
+              <br />
+              <span className="font-semibold text-gray-700">
+                The Paradox:
+              </span>{' '}
+              Fight each other for the highest score while secretly hoping your
+              &quot;opponents&quot; help clear those pesky lines! It&apos;s like
+              being frenemies with physics.
+              <br />
+              <span className="font-semibold text-gray-700">
+                The Price:
+              </span>{' '}
+              Pay to play, rage to lose, blame lag for everything, repeat until
+              broke! Because nothing says &quot;fun&quot; like gambling with
+              geometry! 💸🔺
+            </p>
+          </div>
 
           <div className="border-4 border-black bg-white p-2 relative">
             {renderBoard()}
@@ -405,10 +430,10 @@ export default function Tetris() {
           )}
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 w-64">
           <WalletConnection />
 
-          <div className="border-2 border-black bg-white p-4">
+          <div className="border-2 border-black bg-white p-3">
             <h2 className="text-lg font-bold mb-2 text-black">GAME INFO</h2>
             <div className="space-y-1 text-sm text-black font-medium">
               <div>Round: {gameState.round}</div>
@@ -439,22 +464,24 @@ export default function Tetris() {
             </div>
           </div>
 
-          <div className="border-2 border-black bg-white p-4">
-            <h2 className="text-lg font-bold mb-2 text-black">NEXT</h2>
-            <div className="flex flex-col">{renderNextPiece()}</div>
-          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="border-2 border-black bg-white p-3">
+              <h2 className="text-md font-bold mb-2 text-black">NEXT</h2>
+              <div className="flex flex-col">{renderNextPiece()}</div>
+            </div>
 
-          <div className="border-2 border-black bg-white p-4">
-            <h2 className="text-lg font-bold mb-2 text-black">STATS</h2>
-            <div className="space-y-1 text-sm text-black font-medium">
-              <div>Score: {gameState.score.toLocaleString()}</div>
-              <div>Level: {gameState.level}</div>
-              <div>Lines: {gameState.lines}</div>
+            <div className="border-2 border-black bg-white p-3">
+              <h2 className="text-md font-bold mb-2 text-black">STATS</h2>
+              <div className="space-y-1 text-sm text-black font-medium">
+                <div>Score: {gameState.score.toLocaleString()}</div>
+                <div>Level: {gameState.level}</div>
+                <div>Lines: {gameState.lines}</div>
+              </div>
             </div>
           </div>
 
-          <div className="border-2 border-black bg-white p-4">
-            <h2 className="text-lg font-bold mb-2 text-black">CONTROLS</h2>
+          <div className="border-2 border-black bg-white p-3">
+            <h2 className="text-md font-bold mb-2 text-black">CONTROLS</h2>
             <div className="space-y-1 text-xs text-black font-medium">
               <div>← → Move</div>
               <div>↓ Soft Drop</div>
@@ -463,34 +490,38 @@ export default function Tetris() {
             </div>
           </div>
 
-          <div className="border-2 border-black bg-white p-4 max-h-80 overflow-y-auto">
-            <h2 className="text-lg font-bold mb-2 text-black">ROUND SCORES</h2>
-            {roundScores.length === 0 ? (
-              <div className="text-xs text-gray-500 italic">
-                No scores recorded yet
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {roundScores
-                  .sort((a, b) => a.roundId - b.roundId)
-                  .map((score) => (
-                    <div
-                      key={score.roundId}
-                      className="text-xs bg-gray-50 p-2 border border-gray-200"
-                    >
-                      <div className="font-bold text-black">
-                        Round {score.roundId}
-                      </div>
-                      <div className="text-gray-700">
-                        <div>Score: {score.score.toLocaleString()}</div>
-                        <div>
-                          Lines: {score.lines} | Level: {score.level}
+          <div className="border-2 border-black bg-white flex flex-col h-64">
+            <h2 className="text-md font-bold p-3 pb-2 text-black border-b border-gray-200">
+              ROUND SCORES
+            </h2>
+            <div className="flex-1 overflow-y-auto p-3 pt-2">
+              {roundScores.length === 0 ? (
+                <div className="text-xs text-gray-500 italic">
+                  No scores recorded yet
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {roundScores
+                    .sort((a, b) => b.roundId - a.roundId)
+                    .map((score) => (
+                      <div
+                        key={score.roundId}
+                        className="text-xs bg-gray-50 p-2 border border-gray-200 rounded"
+                      >
+                        <div className="font-bold text-black">
+                          Round {score.roundId}
+                        </div>
+                        <div className="text-gray-700">
+                          <div>Score: {score.score.toLocaleString()}</div>
+                          <div>
+                            Lines: {score.lines} | Level: {score.level}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-              </div>
-            )}
+                    ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
